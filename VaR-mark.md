@@ -422,7 +422,7 @@ be used: the student-t distribution.
 
 ### (Re-scaled) Student-t simulation
 
-To estimate a student-t distribution is fundamental to chose 3
+To estimate a student-t distribution is fundamental to choose 3
 parameters: the mean (m), the standard deviation (s) and the degree of
 freedom (df). All of these parameters will be estimated directly from
 the distribution using the MLE method.
@@ -435,7 +435,7 @@ round(t_fit$estimate,6)
     ##        m        s       df 
     ## 0.000784 0.006395 2.727239
 
-Note that the degree of freedom are added to match the kurtosis of the
+Note that the degrees of freedom are added to match the kurtosis of the
 data.The next step is to simulate 100,000 numbers with the same
 properties from the standardized student-t with mean m, standard
 deviation s and degrees of freedom df.
@@ -787,7 +787,7 @@ fitGarch_t
     ## 4    50    116.76    1.859e-07
     ## 
     ## 
-    ## Elapsed time : 0.298188
+    ## Elapsed time : 0.2896461
 
 Save the output of the GARCH model in a data-frame with the first column
 (logidx) containing the log returns, the second (s) displaying the
@@ -1154,12 +1154,12 @@ head(AAPL)
 ```
 
     ##            AAPL.Open AAPL.High AAPL.Low AAPL.Close AAPL.Volume AAPL.Adjusted
-    ## 2020-01-02   74.0600   75.1500  73.7975    75.0875   135480400      73.05941
+    ## 2020-01-02   74.0600   75.1500  73.7975    75.0875   135480400      73.05943
     ## 2020-01-03   74.2875   75.1450  74.1250    74.3575   146322800      72.34914
     ## 2020-01-06   73.4475   74.9900  73.1875    74.9500   118387200      72.92563
-    ## 2020-01-07   74.9600   75.2250  74.3700    74.5975   108872000      72.58264
-    ## 2020-01-08   74.2900   76.1100  74.2900    75.7975   132079200      73.75024
-    ## 2020-01-09   76.8100   77.6075  76.5500    77.4075   170108400      75.31678
+    ## 2020-01-07   74.9600   75.2250  74.3700    74.5975   108872000      72.58265
+    ## 2020-01-08   74.2900   76.1100  74.2900    75.7975   132079200      73.75022
+    ## 2020-01-09   76.8100   77.6075  76.5500    77.4075   170108400      75.31676
 
 ``` r
 head(AMZN)
@@ -1222,12 +1222,12 @@ summary(logretport)
 ```
 
     ##      Index                 AAPL                 AMZN           
-    ##  Min.   :2020-01-03   Min.   :-0.1377081   Min.   :-0.1513979  
+    ##  Min.   :2020-01-03   Min.   :-0.1377080   Min.   :-0.1513979  
     ##  1st Qu.:2021-01-16   1st Qu.:-0.0090509   1st Qu.:-0.0121253  
-    ##  Median :2022-01-29   Median : 0.0007004   Median : 0.0007890  
+    ##  Median :2022-01-29   Median : 0.0007003   Median : 0.0007890  
     ##  Mean   :2022-01-30   Mean   : 0.0008660   Mean   : 0.0005946  
-    ##  3rd Qu.:2023-02-13   3rd Qu.: 0.0124162   3rd Qu.: 0.0132309  
-    ##  Max.   :2024-02-29   Max.   : 0.1131575   Max.   : 0.1269489  
+    ##  3rd Qu.:2023-02-13   3rd Qu.: 0.0124164   3rd Qu.: 0.0132309  
+    ##  Max.   :2024-02-29   Max.   : 0.1131574   Max.   : 0.1269489  
     ##       TSLA          
     ##  Min.   :-0.236518  
     ##  1st Qu.:-0.020300  
@@ -1254,9 +1254,9 @@ cor(logretport)
 ```
 
     ##           AAPL      AMZN      TSLA
-    ## AAPL 1.0000000 0.6213523 0.5128874
-    ## AMZN 0.6213523 1.0000000 0.4495400
-    ## TSLA 0.5128874 0.4495400 1.0000000
+    ## AAPL 1.0000000 0.6213522 0.5128872
+    ## AMZN 0.6213522 1.0000000 0.4495400
+    ## TSLA 0.5128872 0.4495400 1.0000000
 
 Note that when a stock pairs with itself the correlation is 1. Overall,
 all the stocks have a positive correlation, and the ones between AMZN
@@ -1268,9 +1268,9 @@ cov(logretport)
 ```
 
     ##              AAPL         AMZN         TSLA
-    ## AAPL 0.0004349814 0.0003051841 0.0004543943
+    ## AAPL 0.0004349816 0.0003051841 0.0004543942
     ## AMZN 0.0003051841 0.0005545969 0.0004497100
-    ## TSLA 0.0004543943 0.0004497100 0.0018044758
+    ## TSLA 0.0004543942 0.0004497100 0.0018044758
 
 Note that when a stock pairs with itself that is its variance. Once
 obtained both the Covariance and correlation matrix, it is possible to
@@ -1294,11 +1294,11 @@ VaRpornorm
     ## 
     ## $contribution
     ##        AAPL        AMZN        TSLA 
-    ## 0.008110887 0.016818524 0.010401889 
+    ## 0.008110889 0.016818524 0.010401888 
     ## 
     ## $pct_contrib_VaR
     ##      AAPL      AMZN      TSLA 
-    ## 0.2295666 0.4760234 0.2944100
+    ## 0.2295667 0.4760233 0.2944100
 
 ``` r
 #compute the ES with the Gaussian method
@@ -1315,7 +1315,7 @@ ESpornorm
     ## 
     ## $pct_contrib_ES
     ##      AAPL      AMZN      TSLA 
-    ## 0.2298304 0.4751936 0.2949760
+    ## 0.2298305 0.4751935 0.2949760
 
 The VaR is 0.035 while the Expected shortfall is 0.044. As displayed,
 the different assets contribute in a different way to portfolio’s risk.
@@ -1355,15 +1355,15 @@ VaRporhist
 
     ## $hVaR
     ##   hVaR 95% 
-    ## 0.04092328 
+    ## 0.04092326 
     ## 
     ## $contribution
     ##         AAPL         AMZN         TSLA 
-    ## -0.003231432 -0.004899268 -0.012330942 
+    ## -0.003231427 -0.004899266 -0.012330937 
     ## 
     ## $pct_contrib_hVaR
     ##      AAPL      AMZN      TSLA 
-    ## 0.1579263 0.2394367 0.6026370
+    ## 0.1579262 0.2394367 0.6026371
 
 ``` r
 #compute the ES with the historical method
@@ -1372,14 +1372,14 @@ ESporhist
 ```
 
     ## $`-r_exceed/c_exceed`
-    ## [1] 0.05631963
+    ## [1] 0.05631964
     ## 
     ## $c_exceed
     ## [1] 40
     ## 
     ## $pct_contrib_hES
     ##      AAPL      AMZN      TSLA 
-    ## 0.2445815 0.4583437 0.2970749
+    ## 0.2445817 0.4583435 0.2970748
 
 This time VaR and ES are, respectively, 0.040 and 0.056. Again, let’s
 estimate the VaR and ES as portfolio loss:
@@ -1391,14 +1391,14 @@ loosVaRphist
 ```
 
     ##  hVaR 95% 
-    ## -4177.218
+    ## -4177.216
 
 ``` r
 lossESphist = invpor * (1-exp(ESporhist$`-r_exceed/c_exceed`))
 lossESphist 
 ```
 
-    ## [1] -5793.577
+    ## [1] -5793.579
 
 That is, there is a 5% probability that the portfolio may lose
 4158.02\$. Yet, if the return of the portfolio is worse than this
@@ -1494,13 +1494,13 @@ jarque.test(as.vector(logRetPor)) #not normal
 skewness(as.vector(logRetPor)) #-0.3172239
 ```
 
-    ## [1] -0.3196442
+    ## [1] -0.3196447
 
 ``` r
 kurtosis(as.vector(logRetPor)) #5.22476
 ```
 
-    ## [1] 2.186556
+    ## [1] 2.186559
 
 Results show that log-returns are not normally distributed. As such,
 different methods rather than the normality one can be used to obtain
@@ -1519,7 +1519,7 @@ round(t_por$estimate,6)
 ```
 
     ##        m        s       df 
-    ## 0.001616 0.016904 4.616587
+    ## 0.001616 0.016904 4.616572
 
 With these parameters it is now possible to compute the standardized
 student-t parameters.
@@ -1592,19 +1592,19 @@ fitGarch_por
     ## Optimal Parameters
     ## ------------------------------------
     ##         Estimate  Std. Error  t value Pr(>|t|)
-    ## mu      0.001645    0.000549   2.9976 0.002721
-    ## omega   0.000006    0.000005   1.1718 0.241259
-    ## alpha1  0.077381    0.018657   4.1475 0.000034
-    ## beta1   0.912670    0.021101  43.2522 0.000000
-    ## shape  10.154437    3.230481   3.1433 0.001670
+    ## mu      0.001645    0.000549   2.9968 0.002729
+    ## omega   0.000006    0.000005   1.1729 0.240854
+    ## alpha1  0.077400    0.018657   4.1486 0.000033
+    ## beta1   0.912652    0.021093  43.2674 0.000000
+    ## shape  10.151127    3.228518   3.1442 0.001665
     ## 
     ## Robust Standard Errors:
     ##         Estimate  Std. Error  t value Pr(>|t|)
-    ## mu      0.001645    0.000559  2.94193 0.003262
-    ## omega   0.000006    0.000007  0.75733 0.448853
-    ## alpha1  0.077381    0.025345  3.05315 0.002264
-    ## beta1   0.912670    0.030662 29.76525 0.000000
-    ## shape  10.154437    2.931096  3.46438 0.000531
+    ## mu      0.001645    0.000559  2.94114 0.003270
+    ## omega   0.000006    0.000007  0.75868 0.448043
+    ## alpha1  0.077400    0.025324  3.05643 0.002240
+    ## beta1   0.912652    0.030621 29.80508 0.000000
+    ## shape  10.151127    2.928836  3.46592 0.000528
     ## 
     ## LogLikelihood : 2611.065 
     ## 
@@ -1619,7 +1619,7 @@ fitGarch_por
     ## Weighted Ljung-Box Test on Standardized Residuals
     ## ------------------------------------
     ##                         statistic p-value
-    ## Lag[1]                     0.2038  0.6517
+    ## Lag[1]                     0.2037  0.6517
     ## Lag[2*(p+q)+(p+q)-1][2]    0.3244  0.7823
     ## Lag[4*(p+q)+(p+q)-1][5]    0.7491  0.9133
     ## d.o.f=0
@@ -1628,27 +1628,27 @@ fitGarch_por
     ## Weighted Ljung-Box Test on Standardized Squared Residuals
     ## ------------------------------------
     ##                         statistic p-value
-    ## Lag[1]                      0.582  0.4455
-    ## Lag[2*(p+q)+(p+q)-1][5]     4.118  0.2398
-    ## Lag[4*(p+q)+(p+q)-1][9]     6.278  0.2675
+    ## Lag[1]                     0.5822  0.4455
+    ## Lag[2*(p+q)+(p+q)-1][5]    4.1171  0.2398
+    ## Lag[4*(p+q)+(p+q)-1][9]    6.2777  0.2675
     ## d.o.f=2
     ## 
     ## Weighted ARCH LM Tests
     ## ------------------------------------
     ##             Statistic Shape Scale P-Value
-    ## ARCH Lag[3]     3.177 0.500 2.000  0.0747
-    ## ARCH Lag[5]     4.925 1.440 1.667  0.1069
-    ## ARCH Lag[7]     5.408 2.315 1.543  0.1864
+    ## ARCH Lag[3]     3.176 0.500 2.000 0.07473
+    ## ARCH Lag[5]     4.925 1.440 1.667 0.10695
+    ## ARCH Lag[7]     5.408 2.315 1.543 0.18643
     ## 
     ## Nyblom stability test
     ## ------------------------------------
-    ## Joint Statistic:  1.6596
+    ## Joint Statistic:  1.6586
     ## Individual Statistics:              
-    ## mu     0.25233
-    ## omega  0.06636
-    ## alpha1 0.12658
-    ## beta1  0.09885
-    ## shape  0.30567
+    ## mu     0.25268
+    ## omega  0.06634
+    ## alpha1 0.12627
+    ## beta1  0.09875
+    ## shape  0.30525
     ## 
     ## Asymptotic Critical Values (10% 5% 1%)
     ## Joint Statistic:          1.28 1.47 1.88
@@ -1657,10 +1657,10 @@ fitGarch_por
     ## Sign Bias Test
     ## ------------------------------------
     ##                    t-value   prob sig
-    ## Sign Bias          0.19260 0.8473    
-    ## Negative Sign Bias 0.15894 0.8737    
-    ## Positive Sign Bias 0.23484 0.8144    
-    ## Joint Effect       0.08074 0.9940    
+    ## Sign Bias          0.19265 0.8473    
+    ## Negative Sign Bias 0.15893 0.8738    
+    ## Positive Sign Bias 0.23488 0.8143    
+    ## Joint Effect       0.08075 0.9940    
     ## 
     ## 
     ## Adjusted Pearson Goodness-of-Fit Test:
@@ -1672,7 +1672,7 @@ fitGarch_por
     ## 4    50     54.96       0.2593
     ## 
     ## 
-    ## Elapsed time : 0.1754601
+    ## Elapsed time : 0.1780241
 
 Compose a data frame with log-returns (logRetPor), fitted values of
 daily standard deviation (s), fitted values of Epsilons in the
@@ -1690,7 +1690,7 @@ parmtpor["shape"]
 ```
 
     ##    shape 
-    ## 10.15444
+    ## 10.15113
 
 Now run some tests on Zs’ to get an idea of the Epsilons’ distribution.
 
@@ -1698,25 +1698,25 @@ Now run some tests on Zs’ to get an idea of the Epsilons’ distribution.
 mean(save_tpor$z) #should be 0
 ```
 
-    ## [1] -0.029499
+    ## [1] -0.02947287
 
 ``` r
 sd(save_tpor$z) #should be 1
 ```
 
-    ## [1] 0.9948506
+    ## [1] 0.9948064
 
 ``` r
 skewness(save_tpor$z) #should be 0
 ```
 
-    ## [1] -0.2073001
+    ## [1] -0.2073002
 
 ``` r
 kurtosis(save_tpor$z) #should be equal kp
 ```
 
-    ## [1] 0.565182
+    ## [1] 0.5651602
 
 ``` r
 #compute the perfect kurtosis
@@ -1725,7 +1725,7 @@ kp <- 3 + (6/(getElement(parmtpor, "shape")-4))
 kp
 ```
 
-    ## [1] 3.974906
+    ## [1] 3.975431
 
 ``` r
 #check for serial correlation and volatility clustering in the Z
@@ -1764,8 +1764,8 @@ VaRGarchpor <- round(quantile(retpor_GARCH,0.05),6)
 VaRGarchpor
 ```
 
-    ##       5% 
-    ## -0.02131
+    ##        5% 
+    ## -0.021309
 
 ``` r
 #compute the ES
@@ -1773,7 +1773,7 @@ ESGarchpor <- round(mean(retpor_GARCH[retpor_GARCH<VaRGarchpor]),6)
 ESGarchpor
 ```
 
-    ## [1] -0.02936
+    ## [1] -0.029361
 
 According to the GARCH bootstrapping method, VaR and Es are,
 respectively 0.0206 and 0.0282. Considering the initial investment, this
@@ -1788,13 +1788,13 @@ VaRGarchpor_act
 ```
 
     ##        5% 
-    ## -2108.455
+    ## -2108.357
 
 ``` r
 ESGarchpor_act
 ```
 
-    ## [1] -2893.318
+    ## [1] -2893.415
 
 a 5% probability that the portfolio may lose 2037.75\$. Yet, if the
 return of the portfolio is worse than this amount, the loss will likely
@@ -1912,14 +1912,14 @@ FHS <- fhs(logRetPor, p = 0.95,
 FHS$VaR
 ```
 
-    ## [1] 0.02163564
+    ## [1] 0.0216357
 
 ``` r
 #show the ES
 FHS$ES
 ```
 
-    ## [1] 0.02977384
+    ## [1] 0.02977385
 
 This time, VaR and ES are, respectively, 0.020 and 0.028. Again, let’s
 estimate the VaR and ES as portfolio loss:
@@ -1930,14 +1930,14 @@ loosVaRfhs = invpor * (1- exp(FHS$VaR))
 loosVaRfhs
 ```
 
-    ## [1] -2187.139
+    ## [1] -2187.145
 
 ``` r
 lossESfhs = invpor * (1-exp(FHS$ES))
 lossESfhs
 ```
 
-    ## [1] -3022.151
+    ## [1] -3022.153
 
 In this case, there is a 5% probability that the portfolio may lose
 2090.18\$. Yet, if the return of the portfolio is worse than this
@@ -1946,7 +1946,7 @@ both VaR and ES produces larger losses than the ones estimated thanks to
 the GARCH bootstrapping method. This is because the FHS produces a wider
 range of losses
 
-## Reference
+## References
 
 Filtered historical simulation Value-at-Risk models and their
 competitors, Pedro-Gurrola Perez and David Murphy, Bank of England,

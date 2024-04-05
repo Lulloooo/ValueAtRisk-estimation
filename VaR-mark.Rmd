@@ -269,14 +269,14 @@ The main consequence of this result is that a normal distribution can not be emp
 
 ### (Re-scaled) Student-t simulation
 
-To estimate a student-t distribution is fundamental to chose 3 parameters: the mean (m), the standard deviation (s) and the degree of freedom (df). All of these parameters will be estimated directly from the distribution using the MLE method.
+To estimate a student-t distribution is fundamental to choose 3 parameters: the mean (m), the standard deviation (s) and the degree of freedom (df). All of these parameters will be estimated directly from the distribution using the MLE method.
 
 ```{r student t}
 t_fit <- (fitdistr(vidx, "t"))
 round(t_fit$estimate,6)
 ```
 
-Note that the degree of freedom are added to match the kurtosis of the data.The next step is to simulate 100,000 numbers with the same properties from the standardized student-t with mean m, standard deviation s and degrees of freedom df.
+Note that the degrees of freedom are added to match the kurtosis of the data.The next step is to simulate 100,000 numbers with the same properties from the standardized student-t with mean m, standard deviation s and degrees of freedom df.
 
 ```{r standt}
 #set the seed
