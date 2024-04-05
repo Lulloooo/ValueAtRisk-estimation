@@ -1,7 +1,7 @@
 ---
-title: "S&P500 Value at Risk and Expected shortfall computation"
+title: "Single Asset and Multi-asset portfolio Value at Risk and Expected shortfall estimation"
 author: "Luca Albertini"
-date: "2024-03-19"
+date: "2024-04-05"
 output: github_document
 ---
 
@@ -9,17 +9,13 @@ output: github_document
 knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
 ```
 
-## Data Description
-The S&P500 index is the index that aggregate the biggest 500 firms for market capitalization in the US. In this project, daily index value at the market close will be considered. The time-range goes from 2014-03-19 (first available obersvation) to 2024-03-18 (last available observation). Data are obtained by the ST. Louis FED website.
-**Data Source:** <https://fred.stlouisfed.org/series/SP500>
-
 ## Goal of the Project
 
-The task-at-hand is to compute the Value at risk (VaR) and the expected shortfall (ES) for the S6P500 index. Different methods will be employed, and all of them will be discussed thoroughly.
-Finally, it would be considered a 100 millions USD investment in the S&P500 Index and the possible losses accoring to VaR and ES computed in advance.
+The task-at-hand is to compute the Value at risk (VaR) and the expected shortfall (ES) both for a single assets and a multi-asset portfolio. Different methods will be employed, and all of them will be discussed thoroughly.
+Finally, a 100 millions USD investment would be considered and the possible losses according to VaR and ES computed.
 
 ## Definitions & Concepts
-It is fundamental to have clear in mind the concepts useful for this analysis. The main two are:
+It is fundamental to have clear in mind the concepts for the analysis. The main two are:
 
 - *Value at Risk (VaR)*: is the amount that a portfolio may lose with a given probability (alpha) over a given time period. In other words, it is the maximum loss of the portfolio if the worst alpha percent of possible outcomes are excluded. As such, VaR has 3 elements:
   - a loss amount
@@ -30,17 +26,21 @@ It is fundamental to have clear in mind the concepts useful for this analysis. T
 As evident, VaR and ES are two extremely related concepts. As such, the standard-procedure is to compute both of them while assessing the risks of a portfolio (estimate first the VaR and then the ES).
 Different methods, however, can be employed to guess these two measures of risk based on the nature of the portfolio analyzed. These are:
 
-- *Historical Method*: re-organize actual historical returns and then assumes story will repeat itself.
-- *Variance-Covariance method*: assumes that returns are normally distributed and requires estimations for the expected return and standard deviation
+- *Historical Method*: re-organize actual historical returns assuming story will repeat itself.
+- *Variance-Covariance method*: assumes that returns are normally distributed and requires estimations for the expected return and standard deviation.
 - *Monte Carlo Simulation*: it employs computational models to simulate possible returns over hundreds of thousands possible iterations.
 
-For multi-day Horizon, instead, there are different techniques. The one implemented in this studio are:
+For multi-day horizon, instead, there are different techniques. The one implemented in this analysis are:
+
   - simulate from the student-t
   - simulate from the empirical distribution with IID
   - simulate from the empirical distribution with Block draws
-  - Rolling GARCH
 
 # Analysis
+
+## Data Description
+The S&P500 index is the index that aggregate the biggest 500 firms for market capitalization in the US. In this project, daily index value at the market close will be considered. The time-range goes from 2014-03-19 (first available observation) to 2024-03-18 (last available observation). Data are obtained by the ST. Louis FED website.
+**Data Source:** <https://fred.stlouisfed.org/series/SP500>
 
 ##Load and Explore data
 
@@ -71,7 +71,7 @@ Once done these preliminary operations, let's get the value for the S&P500 index
 sp500 <- getSymbols("SP500",src = "FRED", auto.assign = FALSE)
 ```
 
-Then, clean the data obtained to make them suitable for the analysis. This procedure entails: dropping NA, filtering the series for the proper time range, and re-name the value as idx (short for index).
+Then, clean the data obtained to make it suitable for the analysis. This procedure entails: dropping NA, filtering the series for the proper time range, and re-name the value as idx (short for index).
 
 ```{r clean}
 #drop the NA
@@ -91,7 +91,7 @@ head(sp500, 3)
 tail(sp500, 3)
 ```
 
-Usually, in finance are returns that matters. As such, compute the index continuously compounding return for 1 day  of the index with the formula:
+Usually, in finance returns are considered. As such, compute the index continuously compounding return for 1 day of the index with the formula:
 
 Logret(t) = Log(x(t)) - log(x(t-1))
 
@@ -107,14 +107,14 @@ logidx <- logidx[-1]
 round(head(logidx, 3),6) #interpeting: the number says how much stcks fall/rise in % (values include dividens)
 ```
 
-To return to the value of the index, it is sufficient to do the exponential minus 1. Let's try this.
+Note that to come back to the index's value, it is sufficient to do the exponential minus 1. Let's try this.
 
 ```{r exp}
 idx <-  exp(logidx)-1
 round(head(idx, 3),6)
 ```
 
-Finally, it is possible to compute the log return for greater than 1 day time horizon. The formula is the following:
+Finally, it is possible to compute the log return for more than 1 day with the formula below:
 
 Logret(n-day) = Logret(1) + ... + logret (t-n+1)
 
@@ -130,7 +130,7 @@ idxweek <-  exp(logidxweek)-1
 round(head(idxweek, 3),6)
 ```
 
-Finally, it is fundamental to compute both the mean and the standard deviation for the S&P Index and set the alpha (as 0.05 in this case)
+Finally, it is fundamental to compute both S&P Index mean and the standard deviation and set the alpha (as 0.05 in this case).
 
 ```{r mu&sig}
 #compute the mean
@@ -145,7 +145,7 @@ alpha <- 0.05
 
 ## Normality method
 
-This estimation techniques assuems that the return of the S&P500 are normally distributed. It consists in setting up a normal distribution with the mean and standard deviation of the index. Let's consider the 1-day VaR and 1-day ES. Note that the VaR is computed as the nth quantile of the chosen interval.
+This estimation tecnique assumes that the S&P500 return are normally distributed. It consists in setting up a normal distribution with the mean and standard deviation of the index. Let's consider the 1-day VaR and 1-day ES. Note that the VaR is computed as the nth quantile of the chosen interval.
 
 ```{r 1norm}
 #compute the quantile (or the VaR) of our normal distribution 
@@ -158,7 +158,7 @@ round(esnorm,6)
 
 ## Historical Method
 
-To compute the 1-day VaR and ES with the historical method, the first step is to order the return. To do so, is necessary to implement a function to order xts elements. "sort.xts" function from Jeffrey A. Ryan (2008) does exactly this (https://rdrr.io/rforge/xts/src/R/sort.xts.R).
+To compute the 1-day VaR and ES with the historical method, the first step is to sort the returns. To do so, it is necessary to implement a function to sort xts elements. "sort.xts" function from Jeffrey A. Ryan (2008) does exactly this (https://rdrr.io/rforge/xts/src/R/sort.xts.R).
 
 ```{r sortfunc}
 # function by Jeffrey A. Ryan
@@ -177,7 +177,7 @@ Now it is possible to sort the logidx time series.
 logidxSort <- sort.xts(logidx)
 ```
 
-And finally estimate the VaR and the ES
+And finally estimate the VaR and the ES:
 
 ```{r Varhist}
 #compute the VaR
@@ -188,16 +188,16 @@ EShist <- mean(logidx[logidx<VaRhist]) #consider just number that are less than 
 round(EShist,6)
 ```
 
-Note that this method strongly assumes that history will repeat itself.
+Note that this method strongly relies on the assumptions that history will repeat itself.
 
 ## Simulation methods
 
-The principle for this method is that to estimate the Alpha-quantile of a distribution, it is possible to simulate some data from that distribution and take the Alpha-quantile of the simulated data. Plus, it is possible to simulate from any kind of distribution.
-Note that simulating means to generate realization from a probability distribution, i.e generating a random number that have the same probabilistic properties of randome number that has the underlying distribution properties.
+The idea behind this method is that in order to estimate the Alpha-quantile of a distribution, it is possible to simulate some data from that distribution and take the Alpha-quantile of those simulated data. Plus, it is possible to simulate from any kind of distribution.
+Note that simulating means generate realization from a probability distribution, i.e generating a random number that has the same probabilistic properties of a random number that has the underlying distribution's properties.
 
 ### Simulated Normal distribution
 
-There are different approaches within the simulation method. The first one is to simulate from an underlying normal distribution with mean and standard deviation as the one of the data. In this specific case, the code will get 100,000 random number  with mean mu and sd sig.
+There are different approaches for the simulation method. The first one is to simulate from an underlying normal distribution with mean and standard deviation as the one of the data. In this specific case, the code will get 100,000 random number with mean mu and standard deviation sig.
 
 ```{r simnorm}
 #set the RNGVersion (this is not a must, it is just to use rounding sample)
@@ -208,7 +208,7 @@ set.seed(123789)
 idxvecrandom <- rnorm(100000, mu, sig) #store that numbers in idxvec
 ```
 
-Now that the random distribution has been generated, it is possible to compute both the VaR and the ES.
+Now that the random distribution is generated, it is possible to estimate both the VaR and the ES.
 
 ```{r VaRsimnorm}
 #VaR
@@ -240,11 +240,11 @@ ESreal <- mean(idxvecreal[idxvecreal<VaRreal]) #consider just number that are le
 round(ESreal,6)
 ```
 
-Note that if the data are normally distributed, results should be almost the same as under the normality distribution. Instead, the heavier the tail of the distribution the more frequent are the larger losses than the normal (i.e the normal VaR will be lower than the real data one, if this is the case)
+Note that if the data are normally distributed, results should be almost the same as under the normality distribution. Instead, the heavier the tail of the distribution the more frequent are the larger losses than the normal (i.e the normal VaR will be lower than the real data one, if this is the case).
 
 ### Checking for Normality
 
-The natural question is: how is it possible to check if the distribution of data is normal? There are different paramters that can be checked. 
+The natural question is: how is it possible to check if the distribution of data is normal? There are different parameters that can be checked. 
 The main two are: Skewness and Kurtosis. If skewness = 0 and Kurtosis = 3, then the distribution is normal. If not, it is not. Furthermore, a Jarque-Bera test for normality can be performed to check if data are normally distributed.
 Let's start by computing skewness and kurtosis for the S&P500's distribution.
 
@@ -257,8 +257,8 @@ round(kurtosis(vidx), 2)
 round(skewness(vidx),2)
 ```
 
-Kurtosis (19.1) and skewness (-0.81) point to a non-normally distribution. In particular, it lightly left-skewed and has really heavy tails.
-These values suggest that the Jarque-Bera test will almost certainly reject the normality assumption. Let's perform it.
+Kurtosis (19.1) and skewness (-0.81) point to a non-normal distribution. In particular, it is lightly left-skewed and has really heavy tails.
+These values suggest that the Jarque-Bera test will almost certainly reject the normality assumption. Let's see.
 
 ```{r jb}
 jarque.test(vidx)
@@ -276,7 +276,7 @@ t_fit <- (fitdistr(vidx, "t"))
 round(t_fit$estimate,6)
 ```
 
-Note that the df of freedom are added to match the kurtosis of the data.The next step is to simulate 100,000 numbers with the same properties from the standardized student-t with mean m, standard deviation s and degrees of freedom df.
+Note that the degree of freedom are added to match the kurtosis of the data.The next step is to simulate 100,000 numbers with the same properties from the standardized student-t with mean m, standard deviation s and degrees of freedom df.
 
 ```{r standt}
 #set the seed
@@ -301,7 +301,7 @@ To get the multi-day horizon, 3 different approaches can be undertaken.
 
 ### Simulate from the estimated student-t
 
-The idea is to simulate 10 1-day log returns and add them up to get a 10-days log return. This is a consequence of the fact that the log return of 10days is the sum of the log return of 10 1-day returns.
+The idea is to simulate ten 1-day log returns and add them up to get a 10-days log return. This is a consequence of the fact that the log return of 10days is the sum of the log return of ten 1-day returns.
 To simulate and add log-return a loop will be employed.
 
 ```{r 10t}
@@ -327,9 +327,9 @@ round(ES10, 6)
 
 ### IID method
 
-IID stands for independent and identical distributed. The idea is to get, again, 100,000 random number from the real data distribution getting the 1-day log-return and then add them up 10 times to get the 10-days log return. This is done by a loop function. 
-The point is: why random numbers simulated from the actual data are both indepdent and identically distributed?
-This is because they are randomly chosen, so they are unrelated, and they come from the same distirbution (the actual data), thus are identically distributed.
+IID stands for independent and identical distributed. The idea is to simulate, again, 100,000 random number from the real data distribution, getting the 1-day log-return and then add them up 10 times to get the 10-days log return. This is done by a loop function. 
+The point is: why random numbers simulated from the actual data are both independent and identically distributed?
+This is because they are randomly chosen, so they are unrelated, and they come from the same distribution (the actual data), thus are identically distributed.
 Let's implement this approach.
 
 ```{r IID}
@@ -386,7 +386,7 @@ ESblock <- mean(vidx5[vidx5<VaRblock])
 round(ESblock, 6)
 ```
 
-Once obtained VaR for both IID and Block method, comparing them gives some information about possible time-dependencies within them. IID remove time-dependency (if there is any), while Block method will preserve dependencies within block.As such, if VaR coming from this two different method are very similar, this mens that there is not time-dependencies. Let's glance the IID VaR and the Block VaR to understand if this is the case
+Once obtained VaR for both IID and Block method, comparing them gives some information about possible time-dependencies within the data. IID remove time-dependency (if any), while Block method will preserve dependencies within block. As such, if VaRs resulting from this two different method are very similar, this means that there is not time-dependencies. Let's glance the IID VaR and the Block VaR to understand if this is the case
 
 ```{r comp}
 # IID VaR
@@ -395,7 +395,7 @@ VaR_IID
 VaRblock
 ```
 
-The two VaRs do not appear to be so similar. That is, there is some sort of time dependencies within the S&P500 index log returns.
+The two VaRs do not appear to be that similar. That is, there is some sort of time dependencies within the S&P500 index log returns.
 
 ## Assumptions
 
@@ -404,17 +404,17 @@ In order to compute the VaR with the previous methods, 2 assumptions have been m
 - Future distribution of the log return is the same as its historical distribution
 - The Historical distribution's parameters are estimated without paying attention to the ordering of data. If there are information about the order of the data, this may inform us something more about the future distribution of log returns.
 
-The first assumption is not testable, yet the second is. And it is tested by checking for serial correlation and volatility clustering.
+The first assumption is not testable, yet the second is. The way to test for it is checking for serial correlation and volatility clustering.
 
 ### Serial Correlation
 
-Testing for the serial correlation is like testing for market efficiency. The idea is to plot the autocorrelation plot of the S&P500 log returns and check if there is the presence of autocorrelation.
+Testing for the serial correlation is like testing for market efficiency. The idea is to display the autocorrelation plot for the S&P500 log returns and check if there is autocorrelation.
 
 ```{r acf, echo=FALSE}
 acf(logidx, lag = 100)
 ```
 
-The charts does not point to the presence of serial autocorrelation, even though there is some significant autocorrelated lags at the beginning. The absence of serial correlation implies that above average returns do not increase the chance of being followed by an above average return.
+The chart does not point to the presence of serial autocorrelation, even though there are some significant autocorrelated lags in the beginning. The absence of serial correlation implies that above average returns do not increase the chance of being followed by an above average return.
 
 ### Volatility Clustering
 
@@ -424,14 +424,14 @@ The idea behind volatility clustering is that high (low) volatility days tend to
 acf(abs(logidx), lag = 100)
 ```
 
-The pattern of the acf of the absolute log-return displays that large returns (positive or negative) tend to be followed by large return. This is points to the presence of volatility clusters.
+The the absolute log-return acf's pattern displays that large returns (positive or negative) tend to be followed by large return. This is points to the presence of volatility clusters.
 
-These two tests must be interpreted together. Accordingly to the results, the S&P500 index log-return are not serially autocorrelated but displays volatility clustering. This entails that it will be difficult to predict the mean of future returns (absence of serial correlation) but that volatility is changing over time in a predictable manner (volatility clustering).
-As a consequence, there is the need for a stastical model for volatility. This may be the ARCH or GARCH.
+The two test above must be considered together. Accordingly to the results, the S&P500 index log-returns are not serially autocorrelated but display volatility clustering. This entails that it will be difficult to predict the mean of future returns (absence of serial correlation) but that volatility is changing over time in a predictable manner (volatility clustering).
+As a consequence, there is the necessity to add a statistical model that takes into account volatility. This may be the ARCH or GARCH.
 
 ## GARCH
 
-The model that will be employed is the GARCH(1,1), that has the constant variance case (as it was assumed up to now) as a special case. Briefly, the GARCH contains the mean, the variance and the distirbution equations. The first is the return series that comprehend an expected return plus an unexpected one that changes over time according to the variance equation. The second shows the volatility clustering. Now, let's set the parameters for the GARCH model by defining the mean (using just a constant term that is the mean), variance (GARCH(1,1)) and distribution (rescaled-t distribution) model.
+The model that will be employed is the GARCH(1,1), that has the constant variance case (as it was assumed up to now) as a special case. Briefly, the GARCH contains the mean, the variance and the distribution equations. The first is the return series that comprehend an expected return plus an unexpected one that changes over time according to the variance equation. The second shows the volatility clustering. Now, let's set the parameters for the GARCH model by defining the mean (using just a constant term that is the mean), variance (GARCH(1,1)) and distribution (rescaled-t distribution) model.
 
 ```{r garch}
 #set the parameters for the GARCH model with rescaled-t assumption
@@ -460,7 +460,7 @@ Save also the estimated parameters (mu, omega, alpha1, beta1 and shape(or df of 
 parmt <- round(fitGarch_t@fit$coef,6)
 ```
 
-Once estimated these parameters, it is fundamental to run some diagnostics test on them. Especially, the focus will be the Z's. Mean, standard deviation, kurtosis and skewness should be computed in order to assess the model (note that a normality test is superflous since it is already known that data are not normal).
+Once estimated these parameters, it is fundamental to run some diagnostics test on them. Especially, the focus will be the Z's. Mean, standard deviation, kurtosis and skewness should be computed in order to assess the model (note that a normality test is superfluous since it is already known that data are not normal).
 
 ```{r Zdiagn1}
 mean(save_t$z) #should be 0
@@ -469,7 +469,7 @@ skewness(save_t$z)
 kurtosis(save_t$z)
 ```
 
-Both the mean and the standard deviation are really close to the desidered values (respectively 0 and 1). Skewness should also have a value of 0. However, Zs' skewness is not that far to 0 and is negative, pointing to a left-skewed distribution. Kurtosis, instead, should be equal to ~6.56. Instead, it is lower exhibiting thinner tails.
+Both the mean and the standard deviation are really close to the desired values (respectively 0 and 1). Skewness should also have a value of 0. However, Zs' skewness is not that far to 0 and is negative, pointing to a left-skewed distribution. Kurtosis, instead, should be equal to ~6.56. Instead, since it is lower it exhibits thinner tails.
 Furthermore, it is fundamental to test for serial correlation and volatility clustering in the z's (fitted epsilons in the distribution equation). Let's display the charts:
 
 ```{r Zdiagn2, echo=FALSE}
@@ -477,7 +477,7 @@ acf(save_t$z, lag=100)
 acf(abs(save_t$z), lag=100)
 ```
 
-Altogether, these plots suggest that there is neither autocorrelation nor volatility clustering. Especially, the ACF of the absolute values tells that the variance equation included in the GARCH model can explain all the volatility clustering of the data.
+Altogether, these plots suggest that there is neither autocorrelation nor volatility clustering. Especially, the ACF of the absolute values tells that the variance equation included into the GARCH model can explain all the volatility clustering of the data.
 
 ### VaR and ES
 
@@ -507,11 +507,10 @@ ESGarch <- mean(vidx_GARCH[vidx_GARCH<VaRGarch])
 round(ESGarch, 6)
 ```
 
-
 The question now is: why are VaR and ES coming from GARCH different than the ones observed before? The answer is that GARCH considers volatility clustering to estimate the S&P500 volatility that changes over time. As a consequence, the VaR and ES change over time as well. The previous methods, instead, ignore volatility clustering. Hence, they could provide VaR and ES for a typical day in the sample. 
-This is the reason why GARCH estimations perform better. Indeed, if volatility is high, risk will be high too. Thus, it will be reasonable to take some actions to reduce the risk of the portfolio. If the volatility is low, it may not be do so, because the reductons may be costly. Of course, it is difficult to adjust the portoflio if it is composed by just one Index, as the example.
+This is the reason why GARCH estimations perform better. Indeed, if volatility is high, risk will be high too. Thus, it will be reasonable to take some actions to reduce the risk of the portfolio. If the volatility is low, it may not be do so, because the reductions may be costly. Of course, it is difficult to adjust the portfolio if it is composed by just one Index, as the example.
 
-## 1-day VaR chart
+## 1-day rolling GARCH VaR
 
 Finally, it is possible to plot the 1-day VaR for the year 2023. The technique is to "roll" the 1-day VaR for the entire 2023.
 The first step is to filter the log return and include just observations up to the last day of 2023
@@ -526,7 +525,7 @@ Then, there is the necessity to know the position of the last day of 2022.
 n2022 <- length(logidx["2014-03-19/2022-12-31"])
 ```
 
-Now, all the information to compute a rolling GARCH are there. A rolling GARCH entails estimating the GARCH model up to the last-observation available, then re-estimating it by swtiching ahead by one. In this specific case, the procedure is the following:
+Now, all the information to compute a rolling GARCH are there. A rolling GARCH entails estimating the GARCH model up to the last-observation available, then re-estimating it by switching ahead by one. In this specific case, the procedure is the following:
 
 - Compute the GARCH from the start of the sample to the end of 2022
 - estimate the 1-day VaR at the first day of 2023
@@ -535,10 +534,10 @@ Now, all the information to compute a rolling GARCH are there. A rolling GARCH e
 - re-compute the GARCH again but this time up to the second day of 2023
 - estimate the 1-day VaR for the third day of 2023 and so on.
 
-This loop will go on up to the last day of 2023 by adding 1 day at a time. Let's compute the rolling GARCH (with student-t distirbution).
+This loop will go on up to the last day of 2023 by adding 1 day at a time. Let's compute the rolling GARCH (with student-t distribution).
 
 ```{r rollGarch}
-#let the VaR roll from the 2022 to up to now
+#let the VaR roll from the 2022 to up to the end of 2023
 roll_garch <- ugarchroll(spec=garch_t, #garch model
            data=logidx2023, #data
            n.ahead=1, #1-day ahead var
@@ -554,7 +553,7 @@ roll_garch <- ugarchroll(spec=garch_t, #garch model
 report(roll_garch, type = "VaR", VaR.alpha = 0.05, conf.level = 0.95)
 ```
 
-Finally, plot the 1-day 95% VaR against the actual log-return the S&P500 index displayed during 2023.
+Finally, plot the 1-day 95% VaR against the actual  S&P500 index log-return for 2023.
 
 ```{r VaR2023}
 #save the rolling VaR and the actual value in a df
@@ -580,7 +579,7 @@ VaRplot <- ggplot(data = VaRroll2, aes(x=date)) +
 VaRplot
 ```
 
-The 1-day 95% VaR for 2023 illustrates that overall only for few days the S&P500 index performances were worse than the VaR estimated (i.e the log-return for that day was lower than the VaR for the same day). 
+The 1-day 95% VaR for 2023 illustrates that overall only for few days the S&P500's performances were worse than the VaR estimated (i.e the log-return for that day was lower than the VaR for the same day). 
 According to the GARCH model implemented, it is reasonable to expect that no more than 5% of observation will be below the VAR. To test this, let's compute the time (in %) the return were worse than the VaR.
 
 ```{r worseret}
@@ -639,19 +638,19 @@ eVaRplot
 round((sum(VaReroll[,2]>VaReroll[,3])/250)*100, 2)
 ```
 
-According to the eGarch estimation, 14 times the actual log-return are lower than the VaR. This is the 5.60%, the same result as before. That is, the model could be improved more. Playing with model specification, or checking for outliers and adjusting them, will likely reduce more this number. 
+According to the eGarch estimation, for 14 times the actual log-return are lower than the VaR. This is the 5.60%, the same result as before. That is, the model could be improved more. Playing with model specification, or checking for outliers and adjusting them, will likely reduce more this number. 
 However, the eGarch model is an overall good model.
 
 ## VaR of a multi-stock Portfolio
 
-Up to this point, the focus has been only on one single entity. Now, the goal is to compute the VaR (and ES) for a 100,000$ portfolio that is composed by 3 different stocks (included within the S&P500):
+Up to this point, the focus has been only on one single entity. Now, the goal is to compute the VaR (and ES) for a 100,000$ portfolio that is composed by 3 different stocks (of companies included within the S&P500):
 
 - Amazon (AMZN), 30,000$
 - Apple (AAPL), 50,000$
 - Tesla (TSLA), 20,000$
 
-These stock values will be considered from 01/01/2017. Note that investments are not evenly distributed among stocks. As a consequence, it will be necessary to compute the weights of every stock within the portofolio.
-The starting point is to download the stocks' daily prices from 2020-01-01 to 2024-03-01, and merging their adjusted daily prices into the same dataframe
+These stock values will be considered from 01/01/2017. Note that investments are not evenly distributed among stocks. As a consequence, it will be necessary to compute the weights of every stock within the portfolio.
+The starting point is to download the stocks' daily prices from 2020-01-01 to 2024-03-01, and merge their adjusted daily prices into the same data frame
 
 ```{r tickers}
 #set the amount of the investment
@@ -675,7 +674,7 @@ logretstocks <- cbind(AAPL$AAPL.Adjusted, AMZN$AMZN.Adjusted, TSLA$TSLA.Adjusted
 colnames(logretstocks) <- c("AAPL", "AMZN", "TSLA")
 ```
 
-Then, set the weights are they compose the portfolio.
+Then, set the weights as they compose the portfolio.
 
 ```{r weights}
 #set the weights
@@ -685,7 +684,7 @@ w1 = values/sum(values)
 w = c(0.3, 0.5, 0.2)
 ```
 
-Finally, compute the log returns for each stocks, remove the first observation (that is a NA), add them all in the same data frame and display summary statistics for each one.
+Finally, compute the log returns for each stock, remove the first observation (that is a NA), add them all in the same data frame and display summary statistics.
 
 ```{r logretpor}
 #compute daily returns
@@ -704,7 +703,7 @@ summary(logretport)
 
 To have a general idea of the riskiest stock, the Interquartile range must be considered. The stock with the widest interquartile range is, generally, the riskiest one.
 
-Knowing how different assests interact among each other is fundamental in assesing portfolio. For this purpose, are employed the correlation and the var-covar matrix. Beforing computing them, let's display scatterplots of paired assets.
+Knowing how different assets interact among each other is fundamental in assessing portfolio. For this purpose, the correlation and the var-covar matrix are employed. Before computing them, let's display scatterplots of paired assets.
 
 ```{r scatt-paired, echo=FALSE}
 # a concrete look: Scatter plot, combinations of stocks
@@ -725,11 +724,11 @@ cov(logretport)
 ```
 
 Note that when a stock pairs with itself that is its variance.
-Once obtained both the Covariance and correlation matrixs, it is possible to get variance and expected return of the portfolio.
+Once obtained both the Covariance and correlation matrix, it is possible to get variance and expected return of the portfolio.
 
 ### Normality method
 
-Finally, it is possible to compute the VaR and ES for the portfolio. In this case, both of them will be computed by the normal distribution. Note that this method assumes that returns are distributed on a normal shaped curve.
+Completed the preliminary operations above, it is possible to compute the portfolio VaR and ES. In this case, both of them will be computed from the normal distribution. Note that this method assumes that returns are distributed on a normal shaped curve.
 
 ```{r Varpnorm}
 #compute the VaR with the Gaussian method
@@ -740,7 +739,7 @@ ESpornorm <- PerformanceAnalytics::ETL(logretport, weights = w, p=0.95, portfoli
 ESpornorm
 ```
 
-The VaR is 0.035 while the Expected shortfall is 0.044. As displayed, the different assests contribute in a different way to portfolio's risk. Considering the initial 100,000$ investment, the Value at risk and expected short fall will be:
+The VaR is 0.035 while the Expected shortfall is 0.044. As displayed, the different assets contribute in a different way to portfolio's risk. Considering the initial 100,000$ investment, the Value at risk and expected shortfall will be:
 
 ```{r realvarnorm}
 #considering the actual investment, compute the actual loss in $
@@ -754,7 +753,7 @@ That is, there is a 5% probability that the portfolio may lose 3577.37$. Yet, if
 
 ### Historical method
 
-As seen before for a single stock, the VaR and ES can also be estimated from the historical returns of the portfolio. Let's develop this approach by computing the VaR and ES.
+As seen before for a single stock, the VaR and ES can also be estimated from the historical returns of the portfolio. Let's follow this approach.
 
 ```{r varphist}
 #compute the VaR with the historical method
@@ -765,7 +764,7 @@ ESporhist <- PerformanceAnalytics::ETL(logretport, weights = w, p=0.95, portfoli
 ESporhist
 ```
 
-This time, VaR and ES are, respectively, 0.040 and 0.056. Again, let's estimate the VaR and ES as portfolio loss:
+This time VaR and ES are, respectively, 0.040 and 0.056. Again, let's estimate the VaR and ES as portfolio loss:
 
 ```{r realvarhist}
 #considering the actual investment, compute the actual loss in $
@@ -776,9 +775,9 @@ lossESphist
 ```
 
 That is, there is a 5% probability that the portfolio may lose 4158.02$. Yet, if the return of the portfolio is worse than this amount, the loss will likely be -5793.58 USD.
-These expectations are worse than the ones obtained through under normality assumptions. This points to the fact that portfolio's returns are not normally distributed.
+These expectations are worse than the ones obtained under normality assumption. This points to the fact that portfolio's returns are not normally distributed.
 
-Testing whether or not the portfolio's return are normally shaped will give great insights about the beast approach to estimate VaR. Indeed, if they are not normally shaped, the normality assumption is violated thus VaR computed through the normal method may be misleading. 
+Testing whether or not the portfolio's return are normally shaped will provide great insights about the beast approach to estimate VaR. Indeed, if they are not normally shaped, the normality assumption is violated thus VaR computed through the normal method may be misleading. 
 To do so, it is necessary to compute portfolio's daily-returns. To compute them, the daily simple return of each stock will be considered.
 
 ```{r simpleReturn}
@@ -794,7 +793,7 @@ TSLAretsimp <- TSLAretsimp[-1]
 simpretport <- cbind(AAPLretsimp, AMZNretsimp, TSLAretsimp)
 ```
 
-The daily portfolio return is the sum of the weighted simple return of each of its stock. As a comment, it is added a formula to directly do the procedure that is done manually below.
+The daily portfolio return is the sum of the weighted simple return of each of its stock. As a comment, it is added a formula to directly do the procedure that is done manually.
 
 ```{r portsimpreturn}
 #sanity check for the weights
@@ -841,7 +840,7 @@ Results show that log-returns are not normally distributed. As such, different m
 
 ## Student-t ESTIMATION
 
-Seen that the portoflio returns are not normally distributed, implementing an approach considering a t-student distribution may give more accurate estimates.
+Seen that the portfolio returns are not normally distributed, implementing an approach considering a t-student distribution may give more accurate estimates.
 As such, the first step is to compute the student-t parameters starting by the portfolio returns.
 
 ```{r porstud}
@@ -875,7 +874,7 @@ This time, VaR and ES are, respectively, 0.033 and 0.048.
 
 ## VOLATILITY CLUSTERING & GARCH
 
-To improve more the VaR estimation, checking for serial correlation and volatility clustering among the portfolio's log return. If the autocorrelation plots display one of these two feature, then implementing a GARCH model may lead to better estimations.
+To improve VaR estimation, checking for serial correlation and volatility clustering among portfolio's log return. If the autocorrelation plots display one of these two feature, then implementing a GARCH model may lead to better estimations.
 
 ```{r porvolclus, echo=FALSE}
 #check for volatility clustering
@@ -898,7 +897,7 @@ fitGarch_por <- ugarchfit(spec = garch_por, data = logRetPor)
 fitGarch_por
 ```
 
-Compose a df with log-returns (logRetPor), fitted values of daily standard deviation (s), fitted values of Epsilons in the distribution equation (z). Then save the estimated parameters.
+Compose a data frame with log-returns (logRetPor), fitted values of daily standard deviation (s), fitted values of Epsilons in the distribution equation (z). Then save the estimated parameters.
 
 ```{r porSave}
 #save some outputs (dataframe with logreturns, fitted value of daily sd, fitted vaule of Epsilons in the distribution equation)
@@ -929,7 +928,7 @@ acf(save_tpor$z, lag=100, main = "Z's Log return acf")
 acf(abs(save_tpor$z), lag=100, main = "Z's absolute Log return acf")
 ```
 
-Mean and standard deviation are really close to the "ideal" value of a normally shaped curve (repsectively 0 and 1). Regarding skewness and Kurtosis, the Z's distribution is slightly left-skewed and has thinner tails. Moreover, it appears that there is neither serial correlation nor volatility clustering in the Z's.
+Mean and standard deviation are really close to the "ideal" value of a normally shaped curve (respectively 0 and 1). Regarding skewness and Kurtosis, the Z's distribution is slightly left-skewed and has thinner tails. Moreover, it appears that there is neither serial correlation nor volatility clustering in the Z's.
 Let's compute both the VaR and ES with the GARCH bootstrapping method for 100,000 repetitions.
 
 ```{r portBoot}
@@ -1052,4 +1051,8 @@ lossESfhs
 ```
 
 In this case, there is a 5% probability that the portfolio may lose 2090.18$. Yet, if the return of the portfolio is worse than this amount, the loss will likely be -2865.85 USD.
-Note that in this case, both VaR and ES produces larger losses than the ones estimated thanks to the GARCH bootstrapping method. This is because the FHS produces a wider range of lossess.
+Note that in this case, both VaR and ES produces larger losses than the ones estimated thanks to the GARCH bootstrapping method. This is because the FHS produces a wider range of losses
+
+## References
+
+Filtered historical simulation Value-at-Risk models and their competitors, Pedro-Gurrola Perez and David Murphy, Bank of England, March 2015
